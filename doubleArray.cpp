@@ -1,4 +1,4 @@
-#include "doubleArray.h";
+#include "doubleArray.h"
 #include <iostream>
 
 int MaxArraySize(int size_arr1_, int size_arr2_)
@@ -44,9 +44,9 @@ void DoubleArray::operator/ (const double& number_)
 bool DoubleArray::IsEmpty() const
 {
 	if (m_size == 0)
-		true;
+		return true;
 	else
-		false;
+		return false;
 }
 
 int DoubleArray::Size() const
@@ -132,7 +132,7 @@ void DoubleArray::Erase(const int& firstIndex_, const int& lastIndex_)
 	int n = 0;
 	for (int i = 0; i < firstIndex_; i++)
 	{
-		arr[n] == m_arr[i];
+		arr[n] = m_arr[i];
 		n++;
 	}
 
@@ -204,10 +204,67 @@ void DoubleArray::Resize(const int& size_)
 
 std::ostream& operator<<(std::ostream& stream, const DoubleArray& obj)
 {
-	// TODO: вставьте здесь оператор return
+	stream << '[';
+	for (int i = 0; i < obj.m_size; i++)
+	{
+		stream << obj[i];
+		if(i < obj.m_size - 1)
+			stream << ' ';
+	}
+	stream << ']';
+	return stream;
 }
 
 std::istream& operator>>(std::istream& stream, DoubleArray& obj)
 {
-	// TODO: вставьте здесь оператор return
+	try 
+	{
+		while (stream.peek() == ' ')
+			stream.ignore();
+		if (stream.peek() != '(')
+			throw 1;//ошибка ввода массива (массив должен начинаться с "(")
+		stream.ignore();
+		if (stream.peek() == ')')
+		{
+			stream.ignore();
+			obj.Clear();
+			return stream;
+		}
+		obj.Clear();
+		int size = 0;
+		stream >> size;
+		if (stream.fail())
+			throw 2;
+		obj.m_size = size;
+		if (stream.peek() != ':')
+			throw 4;
+		else
+			stream.ignore();
+		obj.m_arr = new double[obj.m_size];
+		double data = 0;
+		int i = 0;
+		while(stream.peek() != EOF)
+		{
+			stream >> data;
+			if (stream.fail())
+				throw 2;
+			obj.m_arr[i] = data;
+
+			if (stream.peek() == ')')
+			{
+				stream.ignore();
+				return stream;
+			}
+			if (stream.peek() != ',')
+				throw 3; //ошибка ввода элементов (элементы вводятся через запятую)
+			else
+				stream.ignore();
+			i++;
+		}
+	}
+	catch (const int& x)
+	{
+		std::cout << "Error! Wrong enter array!";
+		return stream;
+	}
 }

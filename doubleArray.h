@@ -1,3 +1,4 @@
+#pragma once
 #include <iostream>
 
 class DoubleArray
@@ -43,7 +44,7 @@ public:
 	//Modifiers
 
 	void Clear();
-	void Insert(const double& num_,  const int& index_);
+	void Insert(const double& num_, const int& index_);
 	void Erase(const int& firstIndex_, const int& lastIndex_);
 	void Push_back(const double& num_);
 	void Resize(const int& size_);

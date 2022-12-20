@@ -2,44 +2,96 @@
 #include <iostream>
 #include "DAException.h"
 
-int MaxArraySize(int size_arr1_, int size_arr2_)
+DoubleArray::DoubleArray()
 {
-	if (size_arr1_ < size_arr2_)
-		return size_arr2_;
-	else
-		return size_arr1_;
+	m_size = 0;
+	m_arr = nullptr;
 }
 
-int MinArraySize(int size_arr1_, int size_arr2_)
+DoubleArray::DoubleArray(int size, double* arr)
 {
-	if (size_arr1_ > size_arr2_)
-		return size_arr2_;
-	else
-		return size_arr1_;
-}
+	m_size = size;
+	m_arr = new double[m_size];
 
-void DoubleArray::operator+ (const double& number_)
-{
 	for (int i = 0; i < m_size; i++)
-		m_arr[i] += number_;
+		m_arr[i] = arr[i];
 }
 
-void DoubleArray::operator- (const double& number_)
+DoubleArray::DoubleArray(const DoubleArray& obj)
 {
-	for (int i = 0; i < m_size; i++)
-		m_arr[i] -= number_;
+	Copy(obj);
 }
 
-void DoubleArray::operator* (const double& number_)
+DoubleArray::~DoubleArray()
 {
-	for (int i = 0; i < m_size; i++)
-		m_arr[i] *= number_;
+	delete[] m_arr;
 }
 
-void DoubleArray::operator/ (const double& number_)
+void DoubleArray::Copy(const DoubleArray& obj)
 {
+	if (obj.m_size == 0 || obj.m_arr == nullptr)
+	{
+		m_size = 0;
+		m_arr = nullptr;
+		return;
+	}
+
+	m_size = obj.m_size;
+	m_arr = new double[m_size];
+
 	for (int i = 0; i < m_size; i++)
-		m_arr[i] /= number_;
+		m_arr[i] = obj.m_arr[i];
+}
+
+DoubleArray& DoubleArray::operator=(const DoubleArray& obj)
+{
+	if (this == &obj)
+		return *this;
+
+	Clear();
+	Copy(obj);
+
+	return *this;
+}
+
+DoubleArray DoubleArray::operator+ (double number_)
+{
+	DoubleArray tempArr(*this);
+
+	for (int i = 0; i < m_size; i++)
+		tempArr.m_arr[i] += number_;
+	
+	return tempArr;
+}
+
+DoubleArray DoubleArray::operator- (double number_)
+{
+	DoubleArray tempArr(*this);
+
+	for (int i = 0; i < m_size; i++)
+		tempArr.m_arr[i] -= number_;
+
+	return tempArr;
+}
+
+DoubleArray DoubleArray::operator* (double number_)
+{
+	DoubleArray tempArr(*this);
+
+	for (int i = 0; i < m_size; i++)
+		tempArr.m_arr[i] *= number_;
+
+	return tempArr;
+}
+
+DoubleArray DoubleArray::operator/ (double number_)
+{
+	DoubleArray tempArr(*this);
+
+	for (int i = 0; i < m_size; i++)
+		tempArr.m_arr[i] /= number_;
+
+	return tempArr;
 }
 
 bool DoubleArray::IsEmpty() const
@@ -55,24 +107,24 @@ int DoubleArray::Size() const
 	return m_size;
 }
 
-double* DoubleArray::At(unsigned const int& index_) const
+double& DoubleArray::At(int index_) const
 {
 	if ((index_ >= m_size) || (index_ < 0))
 		throw(DAException("Error! Out of range!", *this));
-	return &m_arr[index_];
+	return m_arr[index_];
 }
 
-double* DoubleArray::Front() const
+double& DoubleArray::Front() const
 {
-	return &m_arr[0];
+	return m_arr[0];
 }
 
-double* DoubleArray::Back() const
+double& DoubleArray::Back() const
 {
-	return &m_arr[m_size - 1];
+	return m_arr[m_size - 1];
 }
 
-double& DoubleArray::operator[] (unsigned const int& index_) const
+double& DoubleArray::operator[] (int index_) const
 {
 	if ((index_ >= m_size) || (index_ < 0))
 		throw(DAException("Error! Out of range!", *this));
@@ -90,7 +142,7 @@ void DoubleArray::Clear()
 	}
 }
 
-void DoubleArray::Insert(const double& num_, const int& index_)
+void DoubleArray::Insert(double num_, int index_)
 {
 	if ((index_ >= m_size) || (index_ < 0))
 		throw(DAException("Error! Out of range!", *this));
@@ -149,7 +201,22 @@ void DoubleArray::Erase(const int& firstIndex_, const int& lastIndex_)
 
 void DoubleArray::Push_back(const double& num_)
 {
-	Insert(num_, m_size);
+	m_size;
+	double* arr = new double[m_size+1];
+
+	for (int i = 0; i < m_size; i++)
+		arr[i] = m_arr[i];
+
+	arr[m_size] = num_;
+
+	++m_size;
+	delete[] m_arr;
+	m_arr = new double[m_size];
+
+	for (int i = 0; i < m_size; i++)
+		m_arr[i] = arr[i];
+
+	delete[] arr;
 }
 
 void DoubleArray::Resize(const int& size_)
@@ -209,44 +276,46 @@ std::ostream& operator<<(std::ostream& stream, const DoubleArray& obj)
 
 std::istream& operator>>(std::istream& stream, DoubleArray& obj)
 {
+	double buffarr[1024];
+
 	while (stream.peek() == ' ')
 		stream.ignore();
-	if (stream.peek() != '(')
-		throw(DAException("Array input error (array must start with (", obj));
+	if (stream.peek() != '[')
+		throw(DAException("Array input error (array must start with [ )", obj));
 	stream.ignore();
-	if (stream.peek() == ')')
+	if (stream.peek() == ']')
 	{
 		stream.ignore();
 		obj.Clear();
 		return stream;
 	}
-	obj.Clear();
-	int size = 0;
-	stream >> size;
-	if (stream.fail())
-		throw(DAException("It was not a number that was entered", obj));
-	obj.m_size = size;
-	if (stream.peek() != ':')
-		throw(DAException("After entered size of arr it was not introduced :", obj));
-	else
-		stream.ignore();
-	obj.m_arr = new double[obj.m_size];
+
 	double data = 0;
 	int i = 0;
+
 	while (stream.peek() != EOF)
 	{
 		stream >> data;
 		if (stream.fail())
 			throw(DAException("It was not a number that was entered", obj));
-		obj.m_arr[i] = data;
+		buffarr[i] = data;
 
-		if (stream.peek() == ')')
+		if (stream.peek() == ']')
 		{
 			stream.ignore();
+
+			obj.Clear();
+
+			obj.m_size = i + 1;
+			obj.m_arr = new double[obj.m_size];
+
+			for (i = 0; i < obj.m_size; i++)
+				obj.m_arr[i] = buffarr[i];
+
 			return stream;
 		}
-		if (stream.peek() != ',')
-			throw(DAException("the elements were not introduced through ,", obj));
+		if (stream.peek() != ' ')
+			throw(DAException("the elements were not introduced through ' '", obj));
 		else
 			stream.ignore();
 		i++;
